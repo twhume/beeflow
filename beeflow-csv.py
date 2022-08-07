@@ -9,7 +9,7 @@ right = []
 left = []
 top = bottom = []
 max = 0
-with open('beeflow.csv', 'r', newline='') as csvfile:
+with open('sonoma.csv', 'r', newline='') as csvfile:
 	reader = csv.reader(csvfile)
 	next(reader, None)  # skip the headers
 	for row in reader:
@@ -19,7 +19,7 @@ with open('beeflow.csv', 'r', newline='') as csvfile:
 		top.append(float(row[3]))
 		bottom.append(float(row[4]))
 
-def calc_speeds(l):
+def calc_speeds(l, pad_to):
 
 	l = np.array(l)
 	neg_l = 255 - l
@@ -42,27 +42,59 @@ def calc_speeds(l):
 		speed = abs((end_val - start_val) / (end_frame - start_frame))
 		print("From frame", start_frame, "to frame", end_frame, "speed=", speed)
 		speeds.extend([speed] * (end_frame-start_frame))
-	return speeds
+
+	if (len(speeds)<pad_to):
+		speeds.extend([speeds[-1]] * (pad_to - len(speeds)))
+
+	return np.array(speeds)
 
 def chunker(seq, size):
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
-def average_speed(l):
+def average_speed(l, frames=30):
 	out = []
-	for c in chunker(l, 30):
-		out.append(sum(c)/30)
+	for i in range(len(l)):
+		num_back = min(frames, i+1)
+		out.append(sum(l[i-num_back:i]) / num_back)
 	return out
 
-l_speeds = calc_speeds(left[1700:2200])
-l_av = average_speed(l_speeds)
-r_speeds = calc_speeds(right[1700:2200])
-r_av = average_speed(r_speeds)
+def to_seconds(l, fps=30):
+	ret = []
+	for c in chunker(l, fps):
+		ret.append(sum(c)/fps)
+	return np.array(ret)
+
+#left = left[:3000]
+#right = right[:3000]
+print("l=",len(left))
+print("r=",len(right))
+
+l_speeds = calc_speeds(left, 0)
+r_speeds = calc_speeds(right, len(l_speeds))
+
+print("l_speeds=",len(l_speeds))
+print("r_speeds=",len(r_speeds))
+
+
+l_av = to_seconds(average_speed(l_speeds, frames=30))
+r_av = to_seconds(average_speed(r_speeds, frames=30))
+
+print("l_av=",len(l_av))
+print("r_av=",len(r_av))
+
+max_av = np.max([np.amax(l_av), np.amax(r_av)])
+min_av = np.min([np.amin(l_av), np.amin(r_av)])
+
+
 
 print(len(l_av))
 print(len(r_av))
-plt.title("Speeds")
-plt.plot(l_av)
-plt.plot(r_av)
+plt.title("L/R position by second")
+#plt.xlim(left=1)
+#plt.plot(l_av)
+#plt.plot(r_av)
+plt.plot((r_av-l_av)/(max_av-min_av))
+plt.ylim((-1,1))
 plt.show()
 
 #plt.plot(left)

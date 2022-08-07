@@ -10,7 +10,8 @@ fontScale = 1
 thickness = 2
 color = (255, 0, 0)
 
-cap = cv.VideoCapture("mumbai-320p.mp4")
+cap = cv.VideoCapture("sonoma.mp4")
+#cap = cv.VideoCapture("v2.mp4")
 
 # Determine FPS
 
