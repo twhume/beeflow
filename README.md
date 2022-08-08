@@ -1,6 +1,6 @@
 # Beeflow
 
-Implementation of the non-directional speed detector described in "How Bees Exploit Optic Flow: Behavioural Experiments and Neural Models [and Discussion]" (MSrinivasan and Gregory, 1992)
+Implementation of the non-directional speed detector described in ["How Bees Exploit Optic Flow: Behavioural Experiments and Neural Models [and Discussion]"](https://www.jstor.org/stable/57057) (Srinivasan and Gregory, 1992)
 
 # TODO
 
