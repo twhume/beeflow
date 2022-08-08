@@ -63,7 +63,7 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, max_frames, previe
 				[1, 1, 1, 1, 1], 
 				[1, 1, 1, 1, 1]])
 			kernel = kernel/sum(kernel)
-			filtered = cv.filter2D(gray,-1,kernel)
+			filtered = cv.filter2D(im_bw,-1,kernel)
 
 			backtorgb = cv.cvtColor(filtered,cv.COLOR_GRAY2RGB)
 
