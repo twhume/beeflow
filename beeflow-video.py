@@ -1,6 +1,7 @@
 # Processes and reports on a video input
 
 import argparse
+from beeflow import process_image, get_average
 import csv
 import cv2 as cv
 import numpy as np
@@ -50,29 +51,11 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, max_frames, previe
 			if (max_frames is not None) and (num >= max_frames):
 				break;
 
-			# Convert to black and white
+			filtered = process_image(frame)
+			(left, right, top, bottom) = get_average(filtered, edge_size)
 
-			gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-			(thresh, im_bw) = cv.threshold(gray, 128, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
-
-			# Add a low pass filter to blur the image
-
-			kernel = np.array([[1, 1, 1, 1, 1], 
-				[1, 1, 1, 1, 1], 
-				[1, 1, 1, 1, 1], 
-				[1, 1, 1, 1, 1], 
-				[1, 1, 1, 1, 1]])
-			kernel = kernel/sum(kernel)
-			filtered = cv.filter2D(im_bw,-1,kernel)
 
 			backtorgb = cv.cvtColor(filtered,cv.COLOR_GRAY2RGB)
-
-			# pull out average values at each edge
-
-			left = np.average(filtered[:,0:edge_size])
-			right = np.average(filtered[:,(v_width-edge_size):v_width])
-			top = np.average(filtered[0:edge_size,:])
-			bottom = np.average(filtered[(v_height-edge_size):v_height,:])
 			output = backtorgb
 
 			if (preview or (output_video is not None)):

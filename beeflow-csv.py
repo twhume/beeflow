@@ -5,39 +5,7 @@ import argparse
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import find_peaks
-
-def calc_speeds(l, pad_to, prominence=10):
-
-	l = np.array(l)
-
-	neg_l = 255 - l
-
-	l_peaks, _ = find_peaks(l, prominence=(prominence, ))
-	l_troughs, _ = find_peaks(neg_l, prominence=(prominence, )) 
-
-	points = np.concatenate((l_peaks, l_troughs))
-	points.sort()
-
-	speeds = [0] * points[0]
-
-	for point_num in range(len(points)-1):
-		start_frame = points[point_num]
-		end_frame = points[point_num+1]
-
-		start_val = l[start_frame]
-		end_val = l[end_frame]
-
-		speed = abs((end_val - start_val) / (end_frame - start_frame))
-		speeds.extend([speed] * (end_frame-start_frame))
-
-	if (len(speeds)<pad_to):
-		speeds.extend([speeds[-1]] * (pad_to - len(speeds)))
-
-	return np.array(speeds)
-
-def chunker(seq, size):
-    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+from beeflow import peaks, speeds
 
 def average_speed(l, frames=30):
 	out = []
@@ -47,13 +15,17 @@ def average_speed(l, frames=30):
 		out.append(sum(l[start:i+1])/num_back)
 	return out
 
+def chunker(seq, size):
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+
 def to_seconds(l, fps=30):
 	ret = []
+	c = chunker(l, fps)
 	for c in chunker(l, fps):
-		ret.append(sum(c)/fps)
+		ret.append(sum(c)/len(c))
 	return np.array(ret)
 
-def process_csv(input_csv, output_file, prominence, fps, window_size, frame_start, frame_end):
+def process_csv(input_csv, output_file, fps, window_size, frame_start, frame_end):
 
 	# Read in the CSV file made by beeflow-video.py
 
@@ -76,8 +48,8 @@ def process_csv(input_csv, output_file, prominence, fps, window_size, frame_star
 		left = left[frame_start:]
 		right = right[frame_start:]
 
-	l_speeds = calc_speeds(left, 0, prominence=prominence)
-	r_speeds = calc_speeds(right, len(l_speeds), prominence=prominence)
+	l_speeds = speeds(left,pad_to=len(left))
+	r_speeds = speeds(right, pad_to=len(l_speeds))
 	if len(r_speeds) > len(l_speeds):
 		pad_from = len(l_speeds)
 		l_speeds.resize(len(r_speeds))
@@ -92,6 +64,7 @@ def process_csv(input_csv, output_file, prominence, fps, window_size, frame_star
 	plt.title("L/R position by second")
 	plt.plot((r_av-l_av)/(max_av-min_av))
 	plt.ylim((-1,1))
+	plt.xlim((0,(len(left)/fps)))
 	plt.xlabel("Time (s)")
 	plt.ylabel("Position (L=-1, R=1)")
 
@@ -104,7 +77,6 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("input_csv", type=str)
 	parser.add_argument("--output_file", type=str)
-	parser.add_argument("--prominence", type=int, default=5)
 	parser.add_argument("--fps", type=int, default=30)
 	parser.add_argument("--window_size", type=int, default=90)
 	parser.add_argument("--frame_start", type=int, default=0)
@@ -112,8 +84,7 @@ def main():
 
 	args = parser.parse_args()
 
-	process_csv(args.input_csv, args.output_file, args.prominence, args.fps, args.window_size,
-		args.frame_start, args.frame_end)
+	process_csv(args.input_csv, args.output_file, args.fps, args.window_size, args.frame_start, args.frame_end)
 
 
 if __name__ == "__main__":

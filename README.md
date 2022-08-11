@@ -6,7 +6,9 @@ tl;dr beeflow-video.py takes a video and analyzes it, creating a CSV output. bee
 
 # TODO
 
+- add tqdm support to give a picture of status of long-running jobs
 - make a single script which analyzes a movie and pastes results into it (bonus points: gradually displaying graph). paste this into the movie
+- make a donkey car driver which uses beeflow to steer, such that the car remains in the middle of the road. Connect to simulator, take image, establish velocity (window-size=2)
 
 # Process
 
