@@ -10,7 +10,12 @@ def process_image(frame):
 	# Convert to black and white
 
 	gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-	(thresh, im_bw) = cv.threshold(gray, 128, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+
+# Keeping this here for posterity because I suspect this is much much simpler computationally
+#	average = np.average(gray)
+#	(thresh, im_bw) = cv.threshold(gray, average, 255, cv.THRESH_BINARY)
+
+	im_bw = cv.adaptiveThreshold(gray,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY,51,2)
 
 	# Add a low pass filter to blur the image
 
