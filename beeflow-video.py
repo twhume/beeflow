@@ -31,7 +31,7 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, horizon, max_frame
 
 	if (output_video is not None):
 		fourcc = cv.VideoWriter_fourcc(*'MP4V')
-		out = cv.VideoWriter(output_video, fourcc, fps, (v_width,v_height))
+		out = cv.VideoWriter(output_video, fourcc, fps, (640,360))
 
 
 	print(f"Input video resolution={v_width}x{v_height}, {length} frames at {fps:.2f} fps")
@@ -54,7 +54,9 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, horizon, max_frame
 			if (max_frames is not None) and (num >= max_frames):
 				break;
 
-			filtered = process_image(frame)
+			resized = cv.resize(frame, (640, 360), cv.INTER_AREA)
+
+			filtered = process_image(resized)
 			filtered = filtered[horizon:,:]
 			(left, right, top, bottom) = get_average(filtered, edge_size)
 

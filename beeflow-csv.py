@@ -25,7 +25,7 @@ def to_seconds(l, fps=30):
 		ret.append(sum(c)/len(c))
 	return np.array(ret)
 
-def process_csv(input_csv, output_file, fps, window_size, frame_start, frame_end):
+def process_csv(input_csv, position_file, speed_file, fps, window_size, frame_start, frame_end):
 
 	# Read in the CSV file made by beeflow-video.py
 
@@ -55,28 +55,57 @@ def process_csv(input_csv, output_file, fps, window_size, frame_start, frame_end
 		l_speeds.resize(len(r_speeds))
 		l_speeds[pad_from:] = l_speeds[pad_from]
 
-	l_av = to_seconds(average_speed(l_speeds, frames=window_size), fps=fps)
-	r_av = to_seconds(average_speed(r_speeds, frames=window_size), fps=fps)
+	l_av = average_speed(l_speeds, frames=window_size)
+	l_av_s = to_seconds(l_av, fps=fps)
+	r_av = average_speed(r_speeds, frames=window_size)
+	r_av_s = to_seconds(r_av, fps=fps)
 
-	max_av = np.max([np.amax(l_av), np.amax(r_av)])
-	min_av = np.min([np.amin(l_av), np.amin(r_av)])
+	max_av = np.max([np.amax(l_av_s), np.amax(r_av_s)])
+	min_av = np.min([np.amin(l_av_s), np.amin(r_av_s)])
 
 	plt.title("L/R position by second")
-	plt.plot((r_av-l_av)/(max_av-min_av))
+	plt.plot((r_av_s-l_av_s)/(max_av-min_av))
 	plt.ylim((-1,1))
 	plt.xlim((0,(len(left)/fps)))
 	plt.xlabel("Time (s)")
 	plt.ylabel("Position (L=-1, R=1)")
 
-	if (output_file is not None):
-		plt.savefig(output_file)
+	if (position_file is not None):
+		plt.savefig(position_file)
 	else:
 		plt.show()
+
+#	plt.clf()
+#	plt.title("Left speed - Right speed/frame")
+#	plt.plot(l_av, label="Left")
+#	plt.plot(r_av, label="right")
+#	plt.plot(np.array(l_av)-np.array(r_av), label="L-R")
+#	plt.legend(loc="upper left")
+#	plt.xlabel("Time (frame)")
+#	plt.ylabel("Speed")
+#	plt.show()
+
+	plt.clf()
+	plt.title("Right av speed - Left av speed/second")
+	plt.plot(l_av_s, label="Left")
+	plt.plot(r_av_s, label="Right")
+	plt.plot(r_av_s-l_av_s, label="R-L")
+	plt.legend(loc="upper left")
+
+	plt.xlim((0,(len(left)/fps)))
+	plt.xlabel("Time (s)")
+	plt.ylabel("Speeds")
+	if (speed_file is not None):
+		plt.savefig(speed_file)
+	else:
+		plt.show()
+
 
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("input_csv", type=str)
-	parser.add_argument("--output_file", type=str)
+	parser.add_argument("--position_file", type=str)
+	parser.add_argument("--speed_file", type=str)
 	parser.add_argument("--fps", type=int, default=30)
 	parser.add_argument("--window_size", type=int, default=90)
 	parser.add_argument("--frame_start", type=int, default=0)
@@ -84,7 +113,7 @@ def main():
 
 	args = parser.parse_args()
 
-	process_csv(args.input_csv, args.output_file, args.fps, args.window_size, args.frame_start, args.frame_end)
+	process_csv(args.input_csv, args.position_file, args.speed_file, args.fps, args.window_size, args.frame_start, args.frame_end)
 
 
 if __name__ == "__main__":
