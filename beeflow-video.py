@@ -26,12 +26,13 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, horizon, max_frame
 	if (max_frames is not None) and (max_frames > length):
 		print(f"Not enough frames: max_frames={max_frames}, length={length}")
 
-	if (output_video is not None):
-		fourcc = cv.VideoWriter_fourcc(*'MP4V')
-		out = cv.VideoWriter(output_video, fourcc, fps, (640,360))
-
 	v_width  = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 	v_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+
+	if (output_video is not None):
+		fourcc = cv.VideoWriter_fourcc(*'MP4V')
+		out = cv.VideoWriter(output_video, fourcc, fps, (v_width,v_height))
+
 
 	print(f"Input video resolution={v_width}x{v_height}, {length} frames at {fps:.2f} fps")
 
