@@ -2,6 +2,7 @@
 
 import argparse
 from beeflow import process_image, get_average
+from tqdm import tqdm
 import csv
 import cv2 as cv
 import numpy as np
@@ -12,7 +13,7 @@ fontScale = 1
 thickness = 2
 color = (255, 0, 0)
 
-def process_video(in_fn, out_csv_fn, output_video, edge_size, max_frames, preview, preserve_fps):
+def process_video(in_fn, out_csv_fn, output_video, edge_size, horizon, max_frames, preview, preserve_fps):
 	cap = cv.VideoCapture(in_fn)
 
 	# Determine FPS
@@ -41,6 +42,7 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, max_frames, previe
 		writer = csv.writer(csvfile,  quotechar='|', quoting=csv.QUOTE_MINIMAL)
 		writer.writerow(["Frame","Left", "Right", "Top", "Bottom"])
 
+		pbar = tqdm(total=length)
 		while(cap.isOpened()):
 			# ret = a boolean return value from getting the frame, frame = the current frame being projected in the video
 			ret, frame = cap.read()
@@ -52,6 +54,7 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, max_frames, previe
 				break;
 
 			filtered = process_image(frame)
+			filtered = filtered[horizon:,:]
 			(left, right, top, bottom) = get_average(filtered, edge_size)
 
 
@@ -83,6 +86,7 @@ def process_video(in_fn, out_csv_fn, output_video, edge_size, max_frames, previe
 
 			num += 1
 			writer.writerow([num, left, right, top, bottom])
+			pbar.update(1)
 
 		# The following frees up resources and closes all windows
 		cap.release()
@@ -97,12 +101,13 @@ def main():
 	parser.add_argument("output_csv", type=str)
 	parser.add_argument("--output_video", type=str, default=None)
 	parser.add_argument("--edge_size", type=int, default=5)
+	parser.add_argument("--horizon", type=int, default=0)
 	parser.add_argument("--max_frames", type=int, default=None)
 	parser.add_argument("--preview", action=argparse.BooleanOptionalAction)
 	parser.add_argument("--preserve_fps", action=argparse.BooleanOptionalAction)
 	args = parser.parse_args()
 	process_video(args.input, args.output_csv, args.output_video, args.edge_size,
-		args.max_frames, args.preview, args.preserve_fps)
+		args.horizon, args.max_frames, args.preview, args.preserve_fps)
 
 
 if __name__ == "__main__":
