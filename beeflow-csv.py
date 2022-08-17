@@ -25,7 +25,7 @@ def to_seconds(l, fps=30):
 		ret.append(sum(c)/len(c))
 	return np.array(ret)
 
-def process_csv(input_csv, position_file, speed_file, fps, window_size, frame_start, frame_end):
+def process_csv(input_csv, position_file, speed_file, raw_file, fps, window_size, frame_start, frame_end):
 
 	# Read in the CSV file made by beeflow-video.py
 
@@ -75,15 +75,37 @@ def process_csv(input_csv, position_file, speed_file, fps, window_size, frame_st
 	else:
 		plt.show()
 
-#	plt.clf()
-#	plt.title("Left speed - Right speed/frame")
-#	plt.plot(l_av, label="Left")
-#	plt.plot(r_av, label="right")
-#	plt.plot(np.array(l_av)-np.array(r_av), label="L-R")
-#	plt.legend(loc="upper left")
-#	plt.xlabel("Time (frame)")
-#	plt.ylabel("Speed")
-#	plt.show()
+	l_np = np.array(left)
+	l_peaks = peaks(l_np)
+	l_troughs = peaks(255 - l_np)
+	l_points = np.concatenate((l_peaks, l_troughs))
+	l_plot = []
+	for i in l_points:
+		l_plot.append(l_np[i])
+
+	r_np = np.array(right)
+	r_peaks = peaks(r_np)
+	r_troughs = peaks(255 - r_np)
+	r_points = np.concatenate((r_peaks, r_troughs))
+
+
+	plt.clf()
+	plt.title("Left vs Right raw values")
+	plt.plot(left, label="Left")
+	plt.scatter(l_points, l_plot, label="Left")
+	plt.plot(right, label="right")
+#	plt.scatter(r_points, label="Left", fmt="bo")
+
+	plt.legend(loc="upper left")
+	plt.xlabel("Time (frame)")
+	plt.ylabel("Edge luminescence")
+	plt.show()
+
+	if (raw_file is not None):
+		plt.savefig(raw_file)
+	else:
+		plt.show()
+
 
 	plt.clf()
 	plt.title("Right av speed - Left av speed/second")
@@ -106,6 +128,7 @@ def main():
 	parser.add_argument("input_csv", type=str)
 	parser.add_argument("--position_file", type=str)
 	parser.add_argument("--speed_file", type=str)
+	parser.add_argument("--raw_file", type=str)
 	parser.add_argument("--fps", type=int, default=30)
 	parser.add_argument("--window_size", type=int, default=90)
 	parser.add_argument("--frame_start", type=int, default=0)
@@ -113,7 +136,7 @@ def main():
 
 	args = parser.parse_args()
 
-	process_csv(args.input_csv, args.position_file, args.speed_file, args.fps, args.window_size, args.frame_start, args.frame_end)
+	process_csv(args.input_csv, args.position_file, args.speed_file, args.raw_file, args.fps, args.window_size, args.frame_start, args.frame_end)
 
 
 if __name__ == "__main__":
