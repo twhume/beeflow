@@ -1,4 +1,5 @@
 from beeflow import process_image, get_average, speeds
+from time import sleep
 import argparse 
 import cv2 as cv
 import os
@@ -17,43 +18,6 @@ thickness = 1
 color = (255, 255, 255)
 
 def get_controls(diff, base_speed):
-	steering = 0.0
-	speed = base_speed
-
-	if (diff<0): # Right side is faster
-
-		if (diff < -4):
-			steering = 1.0
-			speed = speed / 2
-		elif (diff < -2): 
-			steering = 0.7
-			speed = speed / 2
-		elif (diff < -1): 
-			steering = 0.5
-		elif (diff < -0.5): 
-			steering = 0.2
-		else:
-			steering = 0.1
-
-	else: # Left size is faster
-
-		if (diff > 4):
-			steering = -1.0
-			speed = speed / 2
-		elif (diff > 2): 
-			steering = -0.7
-			speed = speed / 2
-		elif (diff > 1): 
-			steering = -0.5
-		elif (diff > 0.5): 
-			steering = -0.2
-		else:
-			steering = -0.1
-
-	steering = steering * 0.7
-	return(steering,speed)
-
-def get_controls_backup(diff, base_speed):
 	steering = 0.0
 	speed = base_speed
 
@@ -112,8 +76,16 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 		# execute the action
 		obs, reward, done, info = env.step(action)
 
+		# If we hit a wall, call it a day
+
+		if (info["speed"]<0.01) and (t>10):
+			return (t, "CRASH")
+			break;
+
+		# If we get too far off track, finish
+
 		if (abs(info["cte"])>7.75):
-			return t
+			return (t, "OFFTRACK")
 			break;
 
 		rgb = cv.cvtColor(obs,cv.COLOR_BGR2RGB)
@@ -154,7 +126,7 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 	out.release()
 	env.viewer.exit_scene()
 	env.close()
-	return t
+	return (t,"COMPLETE")
 
 
 def main():
@@ -165,17 +137,15 @@ def main():
 	parser.add_argument("--edge_size", type=int, default=20)
 	parser.add_argument("--run_max", type=int, default=1000)
 	parser.add_argument("--port", type=int, default=9091)
+	parser.add_argument("--pause", type=int, default=0)
 	parser.add_argument("--debug", type=bool, default=False)
 	parser.add_argument("--track_name", type=str, default="donkey-generated-roads-v0")
 
 	args = parser.parse_args()
-
-	run_length = run_simulation(args.output_file, args.debug, args.base_speed, args.window_size, args.edge_size,
+	sleep(args.pause)
+	(run_length, result) = run_simulation(args.output_file, args.debug, args.base_speed, args.window_size, args.edge_size,
 		args.run_max, args.track_name, args.port)
-	if (run_length==(args.run_max-1)):
-		results = [args.output_file, run_length, args.base_speed, args.window_size, args.edge_size, "complete"]
-	else: 
-		results = [args.output_file, run_length, args.base_speed, args.window_size, args.edge_size, "failed"]
+	results = [args.output_file, args.track_name, run_length, args.base_speed, args.window_size, args.edge_size, result]
 	results = [str(x) for x in results] 
 	print("RESULT,",",".join(results))
 
