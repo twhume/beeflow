@@ -16,12 +16,18 @@ fontScale = 0.5
 thickness = 1
 color = (255, 255, 255)
 
-def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name):
+def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port):
 
 	left_w = []
 	right_w = []
 
-	env = gym.make(track_name)
+	conf = {
+        "exe_path": "/Applications/donkey_sim.app/Contents/MacOS/donkey_sim",
+        "host": "127.0.0.1",
+        "port": port
+    }
+
+	env = gym.make(track_name, conf=conf)
 	obs = env.reset()
 	action = np.array([0.0, base_speed]) # start by driving straight with small speed
 
@@ -117,13 +123,14 @@ def main():
 	parser.add_argument("--window_size", type=int, default=10)
 	parser.add_argument("--edge_size", type=int, default=20)
 	parser.add_argument("--run_max", type=int, default=1000)
+	parser.add_argument("--port", type=int, default=9091)
 	parser.add_argument("--debug", type=bool, default=False)
 	parser.add_argument("--track_name", type=str, default="donkey-generated-roads-v0")
 
 	args = parser.parse_args()
 
 	run_length = run_simulation(args.output_file, args.debug, args.base_speed, args.window_size, args.edge_size,
-		args.run_max, args.track_name)
+		args.run_max, args.track_name, args.port)
 	if (run_length==(args.run_max-1)):
 		print("RESULT", args.output_file, "completed at", run_length)
 	else: 
