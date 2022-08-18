@@ -1,8 +1,8 @@
 #!/bin/sh
 
 WINDOWS=(5 10 15)
-SPEEDS=(0.6 0.7 0.8 0.9 1.0)
-EDGES=(16 20 24 28)
+SPEEDS=(0.7 0.8)
+EDGES=(22 24 26 28 30)
 ITERATIONS=10
 TIMEOUT=120
 
@@ -22,7 +22,7 @@ do
 				sav_pid=$!
 				bee_pid_array+=($sav_pid)
 			done
-			echo Waiting for round to end ( ${bee_pid_array[@]} )
+			echo Waiting for round to end: ${bee_pid_array[@]}
 			while kill -0 ${bee_pid_array[@]} 2> /dev/null; do sleep 1; done;
 
 		done

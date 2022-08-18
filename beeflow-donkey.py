@@ -16,6 +16,79 @@ fontScale = 0.5
 thickness = 1
 color = (255, 255, 255)
 
+def get_controls(diff, base_speed):
+	steering = 0.0
+	speed = base_speed
+
+	if (diff<0): # Right side is faster
+
+		if (diff < -4):
+			steering = 1.0
+			speed = speed / 2
+		elif (diff < -2): 
+			steering = 0.7
+			speed = speed / 2
+		elif (diff < -1): 
+			steering = 0.5
+		elif (diff < -0.5): 
+			steering = 0.2
+		else:
+			steering = 0.1
+
+	else: # Left size is faster
+
+		if (diff > 4):
+			steering = -1.0
+			speed = speed / 2
+		elif (diff > 2): 
+			steering = -0.7
+			speed = speed / 2
+		elif (diff > 1): 
+			steering = -0.5
+		elif (diff > 0.5): 
+			steering = -0.2
+		else:
+			steering = -0.1
+
+	steering = steering * 0.7
+	return(steering,speed)
+
+def get_controls_backup(diff, base_speed):
+	steering = 0.0
+	speed = base_speed
+
+	if (diff<0): # Right side is faster
+
+		if (diff < -4):
+			steering = 1.0
+			speed = speed / 2
+		elif (diff < -2): 
+			steering = 0.7
+			speed = speed / 2
+		elif (diff < -1): 
+			steering = 0.5
+		elif (diff < -0.5): 
+			steering = 0.2
+		else:
+			steering = 0.1
+
+	else: # Left size is faster
+
+		if (diff > 4):
+			steering = -1.0
+			speed = speed / 2
+		elif (diff > 2): 
+			steering = -0.7
+			speed = speed / 2
+		elif (diff > 1): 
+			steering = -0.5
+		elif (diff > 0.5): 
+			steering = -0.2
+		else:
+			steering = -0.1
+
+	return(steering,speed)
+
 def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port):
 
 	left_w = []
@@ -67,39 +140,7 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 			l_av = np.average(left_s)
 			diff = l_av-r_av
 
-			steering = 0.0
-			speed = base_speed
-
-			if (diff<0): # Right side is faster
-
-				if (diff < -4):
-					steering = 1.0
-					speed = speed / 2
-				elif (diff < -2): 
-					steering = 0.7
-					speed = speed / 2
-				elif (diff < -1): 
-					steering = 0.5
-				elif (diff < -0.5): 
-					steering = 0.2
-				else:
-					steering = 0.1
-
-			else: # Left size is faster
-
-				if (diff > 4):
-					steering = -1.0
-					speed = speed / 2
-				elif (diff > 2): 
-					steering = -0.7
-					speed = speed / 2
-				elif (diff > 1): 
-					steering = -0.5
-				elif (diff > 0.5): 
-					steering = -0.2
-				else:
-					steering = -0.1
-
+			(steering, speed) = get_controls(diff, base_speed)
 
 			if (debug):
 				print(f"{t}: l={l_av:0.3}, r={r_av:0.3}, diff={diff:0.3}, steering={steering:0.3}, speed={speed:0.3}")
@@ -132,10 +173,11 @@ def main():
 	run_length = run_simulation(args.output_file, args.debug, args.base_speed, args.window_size, args.edge_size,
 		args.run_max, args.track_name, args.port)
 	if (run_length==(args.run_max-1)):
-		print("RESULT", args.output_file, "completed at", run_length)
+		results = [args.output_file, run_length, args.base_speed, args.window_size, args.edge_size, "complete"]
 	else: 
-		print("RESULT", args.output_file, "failed at", run_length)
+		results = [args.output_file, run_length, args.base_speed, args.window_size, args.edge_size, "failed"]
+	results = [str(x) for x in results] 
+	print("RESULT,",",".join(results))
 
 if __name__ == "__main__":
-    main()
-
+	main()
