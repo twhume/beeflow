@@ -18,18 +18,18 @@ fontScale = 0.5
 thickness = 1
 color = (255, 255, 255)
 
-max_speed = 0
+max_diff = 0
 def get_controls(diff, base_speed, power, mod):
-  global max_speed
-  max_speed = max(max_speed, abs(diff))
+  global max_diff
+  max_diff = max(max_diff, abs(diff))
 
-  steering = (diff/max_speed)
-  steering = power * steering
+  steering_abs = (diff/max_diff)
+  steering = power * steering_abs
   steering = -1 * steering
   steering = min(steering, 1)
   steering = max(steering, -1)
 
-  throttle = 1 - abs(steering)
+  throttle = 1 - (steering_abs/mod)
   throttle = min(throttle, 1)
   throttle = max(throttle, 0)
 
