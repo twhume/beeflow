@@ -1,4 +1,5 @@
 from beeflow import process_image, get_average, speeds
+from math import copysign
 from time import sleep
 import argparse 
 import cv2 as cv
@@ -17,43 +18,26 @@ fontScale = 0.5
 thickness = 1
 color = (255, 255, 255)
 
-def get_controls(diff, base_speed):
-	steering = 0.0
-	speed = base_speed
+max_speed = 0
+def get_controls(diff, base_speed, power, mod):
+  global max_speed
+  max_speed = max(max_speed, abs(diff))
 
-	if (diff<0): # Right side is faster
+  steering = (diff/max_speed)
+  steering = power * steering
+  steering = -1 * steering
+  steering = min(steering, 1)
+  steering = max(steering, -1)
 
-		if (diff < -4):
-			steering = 1.0
-			speed = speed / 2
-		elif (diff < -2): 
-			steering = 0.7
-			speed = speed / 2
-		elif (diff < -1): 
-			steering = 0.5
-		elif (diff < -0.5): 
-			steering = 0.2
-		else:
-			steering = 0.1
+  throttle = 1 - abs(steering)
+  throttle = min(throttle, 1)
+  throttle = max(throttle, 0)
 
-	else: # Left size is faster
+  print("diff=",diff,"steering=",steering,"throttle=",throttle)
+  return (steering, throttle)
 
-		if (diff > 4):
-			steering = -1.0
-			speed = speed / 2
-		elif (diff > 2): 
-			steering = -0.7
-			speed = speed / 2
-		elif (diff > 1): 
-			steering = -0.5
-		elif (diff > 0.5): 
-			steering = -0.2
-		else:
-			steering = -0.1
 
-	return(steering,speed)
-
-def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port):
+def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port, power, mod):
 
 	left_w = []
 	right_w = []
@@ -112,7 +96,7 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 			l_av = np.average(left_s)
 			diff = l_av-r_av
 
-			(steering, speed) = get_controls(diff, base_speed)
+			(steering, speed) = get_controls(diff, base_speed, power, mod)
 
 			if (debug):
 				print(f"{t}: l={l_av:0.3}, r={r_av:0.3}, diff={diff:0.3}, steering={steering:0.3}, speed={speed:0.3}")
@@ -139,13 +123,15 @@ def main():
 	parser.add_argument("--port", type=int, default=9091)
 	parser.add_argument("--pause", type=int, default=0)
 	parser.add_argument("--debug", type=bool, default=False)
+	parser.add_argument("--power", type=float, default=1)
+	parser.add_argument("--mod", type=float, default=0)
 	parser.add_argument("--track_name", type=str, default="donkey-generated-roads-v0")
 
 	args = parser.parse_args()
 	sleep(args.pause)
 	(run_length, result) = run_simulation(args.output_file, args.debug, args.base_speed, args.window_size, args.edge_size,
-		args.run_max, args.track_name, args.port)
-	results = [args.output_file, args.track_name, run_length, args.base_speed, args.window_size, args.edge_size, result]
+		args.run_max, args.track_name, args.port, args.power, args.mod)
+	results = [args.output_file, args.track_name, run_length, args.base_speed, args.window_size, args.edge_size, args.power, args.mod, result]
 	results = [str(x) for x in results] 
 	print("RESULT,",",".join(results))
 
