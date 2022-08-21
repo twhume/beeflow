@@ -1,15 +1,13 @@
 #!/bin/sh
 
-WINDOWS=(10 )
-SPEEDS=(0.8)
-EDGES=(24)
+WINDOWS=(5 10 15 20)
+SPEEDS=(0.6 0.7 0.8 0.9)
+EDGES=(20 24 28)
 ITERATIONS=20
 TIMEOUT=120
-POWERS=(0.8)
-
+POWERS=(0.7 0.8 0.9)
 TRACKS=("donkey-warehouse-v0" "donkey-generated-roads-v0" "donkey-minimonaco-track-v0")
-TRACKS=("donkey-generated-roads-v0")
-MODS=(0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0)
+MODS=(1.5 2.0 2.5)
 # Dropped "donkey-avc-sparkfun-v0" 
 
 for w in "${WINDOWS[@]}"
