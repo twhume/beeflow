@@ -41,6 +41,7 @@ def get_controls(diff, base_speed, _power, _mod):
 			speed = speed /2
 		elif (diff < -0.5): 
 			steering = 0.2
+			speed = speed /2
 		else:
 			steering = 0.1
 
@@ -57,6 +58,7 @@ def get_controls(diff, base_speed, _power, _mod):
 			speed = speed /2
 		elif (diff > 0.5): 
 			steering = -0.2
+			speed = speed /2
 		else:
 			steering = -0.1
 
