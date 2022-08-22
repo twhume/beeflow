@@ -19,23 +19,44 @@ thickness = 1
 color = (255, 255, 255)
 
 max_diff = 0
-def get_controls(diff, base_speed, power, mod):
-  global max_diff
-  max_diff = max(max_diff, abs(diff))
 
-  steering_abs = (diff/max_diff)
-  steering = power * steering_abs
-  steering = -1 * steering
-  steering = min(steering, 1)
-  steering = max(steering, -1)
+#TODO: remove unused parameters
+def get_controls(diff, base_speed, _power, _mod):
+	steering = 0.0
+	speed = base_speed
 
-  throttle = 1 - (steering_abs/mod)
-  throttle = min(throttle, 1)
-  throttle = max(throttle, 0)
 
-  print("diff=",diff,"steering=",steering,"throttle=",throttle)
-  return (steering, throttle)
+	if (diff<0): # Right side is faster
 
+		if (diff < -4):
+			steering = 1.0
+			speed = speed / 2
+		elif (diff < -2): 
+			steering = 0.7
+			speed = speed / 2
+		elif (diff < -1): 
+			steering = 0.5
+		elif (diff < -0.5): 
+			steering = 0.2
+		else:
+			steering = 0.1
+
+	else: # Left size is faster
+
+		if (diff > 4):
+			steering = -1.0
+			speed = speed / 2
+		elif (diff > 2): 
+			steering = -0.7
+			speed = speed / 2
+		elif (diff > 1): 
+			steering = -0.5
+		elif (diff > 0.5): 
+			steering = -0.2
+		else:
+			steering = -0.1
+
+	return(steering,speed)
 
 def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port, power, mod):
 
