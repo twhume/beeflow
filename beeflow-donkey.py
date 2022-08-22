@@ -18,10 +18,12 @@ fontScale = 0.5
 thickness = 1
 color = (255, 255, 255)
 
-max_diff = 0
+speed_choices = dict()
+steering_choices = dict()
 
 #TODO: remove unused parameters
 def get_controls(diff, base_speed, _power, _mod):
+	global speed_choices, steering_choices	
 	steering = 0.0
 	speed = base_speed
 
@@ -29,13 +31,14 @@ def get_controls(diff, base_speed, _power, _mod):
 	if (diff<0): # Right side is faster
 
 		if (diff < -4):
-			steering = 1.0
-			speed = speed / 2
+			steering = 1.0 # Better than 0.7
+			speed = speed /2 # Was / 2
 		elif (diff < -2): 
-			steering = 0.7
-			speed = speed / 2
+			steering = 0.7 
+			speed = speed /2
 		elif (diff < -1): 
 			steering = 0.5
+			speed = speed /2
 		elif (diff < -0.5): 
 			steering = 0.2
 		else:
@@ -45,16 +48,27 @@ def get_controls(diff, base_speed, _power, _mod):
 
 		if (diff > 4):
 			steering = -1.0
-			speed = speed / 2
+			speed = speed /2
 		elif (diff > 2): 
 			steering = -0.7
-			speed = speed / 2
+			speed = speed /2
 		elif (diff > 1): 
 			steering = -0.5
+			speed = speed /2
 		elif (diff > 0.5): 
 			steering = -0.2
 		else:
 			steering = -0.1
+
+	if (str(speed) in speed_choices):
+		speed_choices[str(speed)] = speed_choices[str(speed)] + 1
+	else:
+		speed_choices[str(speed)] = 1
+
+	if (str(steering) in steering_choices):
+		steering_choices[str(steering)] = steering_choices[str(steering)] + 1
+	else:
+		steering_choices[str(steering)] = 1
 
 	return(steering,speed)
 
@@ -76,6 +90,16 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 	fourcc = cv.VideoWriter_fourcc(*'MP4V')
 	out = cv.VideoWriter(output_file, fourcc, 25, (160,120))
 
+	def cleanup():
+		out.release()
+		env.viewer.exit_scene()
+		env.close()
+
+		global speed_choices, steering_choices	
+		speed_choices = dict(sorted(speed_choices.items(), key=lambda item: item[1]))
+		steering_choices = dict(sorted(steering_choices.items(), key=lambda item: item[1]))
+		print("Speeds=", speed_choices)
+		print("Steering=", steering_choices)
 
 	for t in range(run_max):
 		# execute the action
@@ -84,12 +108,14 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 		# If we hit a wall, call it a day
 
 		if (info["speed"]<0.01) and (t>10):
+			cleanup()
 			return (t, "CRASH")
 			break;
 
 		# If we get too far off track, finish
 
 		if (abs(info["cte"])>7.75):
+			cleanup()
 			return (t, "OFFTRACK")
 			break;
 
@@ -128,9 +154,8 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 			action = np.array([0.0, base_speed]) # drive straight with small speed
 
 	# Exit the scene
-	out.release()
-	env.viewer.exit_scene()
-	env.close()
+	cleanup()
+
 	return (t,"COMPLETE")
 
 
@@ -155,6 +180,7 @@ def main():
 	results = [args.output_file, args.track_name, run_length, args.base_speed, args.window_size, args.edge_size, args.power, args.mod, result]
 	results = [str(x) for x in results] 
 	print("RESULT,",",".join(results))
+
 
 if __name__ == "__main__":
 	main()
