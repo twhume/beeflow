@@ -1,6 +1,10 @@
 # Beeflow
 
+![Snarling half-bee, half-donkey](/assets/beedonkey.png)
+
 Implementation of the non-directional speed detector described in ["How Bees Exploit Optic Flow: Behavioural Experiments and Neural Models [and Discussion]"](https://www.jstor.org/stable/57057) (Srinivasan and Gregory, 1992)
+
+Goal is to use this mechanism to drive a [Donkey Car](https://docs.donkeycar.com).
 
 tl;dr beeflow-video.py takes a video and analyzes it, creating a CSV output. beeflow-csv.py turns this output into a graph showing whether the camera position is towards left or right of the environment, based on relative speed of movement at the left and right edges. beeflow-donkey.py uses this approach to drive a donkey car.
 
