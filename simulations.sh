@@ -1,16 +1,16 @@
 #!/bin/sh
 
-WINDOWS=(5 10 15)
-SPEEDS=(0.7 0.8 0.9 1.0)
-EDGES=(20 24 28 32)
+WINDOWS=(15)
+SPEEDS=(0.7)
+EDGES=(28)
 ITERATIONS=20
 TIMEOUT=120
 POWERS=(0.7) # ignored
-TRACKS=("donkey-warehouse-v0" "donkey-generated-roads-v0" "donkey-minimonaco-track-v0")
+#TRACKS=("donkey-warehouse-v0" "donkey-generated-roads-v0" "donkey-minimonaco-track-v0")
 MODS=(1.5) # ignored
 # Dropped "donkey-avc-sparkfun-v0" 
 
-#TRACKS=("donkey-generated-roads-v0" )
+TRACKS=("donkey-generated-roads-v0" "donkey-generated-roads-v0" "donkey-generated-roads-v0" "donkey-generated-roads-v0" "donkey-generated-roads-v0" )
 
 
 for w in "${WINDOWS[@]}"
