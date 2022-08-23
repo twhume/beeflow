@@ -1,6 +1,6 @@
 # Beeflow
 
-<img src="assets/beedonkey.png" width="200" align="right" alt="Snarling half-bee, half-donkey" padding="20px"/>
+<img src="assets/beedonkey.png" width="200" align="right" alt="Snarling half-bee, half-donkey" hspace="20" vspace="20"/>
 
 Implementation of the non-directional speed detector described in ["How Bees Exploit Optic Flow: Behavioural Experiments and Neural Models [and Discussion]"](https://www.jstor.org/stable/57057) (Srinivasan and Gregory, 1992)
 
@@ -56,7 +56,7 @@ Parameters:
 Use the same method to drive a simulated donkey car:
 
 ```
-python beeflow-donkey.py
+python beeflow-donkey.py output.mp4 --base_speed=0.8 --window_size=28 --edge_size=24 --run_max=1000 --port=9091 --pause=1 --debug=True --track_name=donkey-generated-roads-v0
 ```
 
 - (required) output_file : where to put a video of the cars-eye view of the drive
