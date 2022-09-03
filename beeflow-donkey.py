@@ -21,8 +21,18 @@ color = (255, 255, 255)
 speed_choices = dict()
 steering_choices = dict()
 
-#TODO: remove unused parameters
-def get_controls(diff, base_speed, _power, _mod):
+class Smoother:
+
+	def __init__(self, window_size):
+		self.window_size = window_size
+		self.history = []
+
+	def smooth(self, input):
+		self.history.append(input)
+		self.history = self.history[-self.window_size:]
+		return sum(self.history)/len(self.history)
+
+def get_controls(diff, base_speed):
 	global speed_choices, steering_choices	
 	steering = 0.0
 	speed = base_speed
@@ -74,7 +84,7 @@ def get_controls(diff, base_speed, _power, _mod):
 
 	return(steering,speed)
 
-def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port, power, mod):
+def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_max, track_name, port):
 
 	left_w = []
 	right_w = []
@@ -103,6 +113,9 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 		print("Speeds=", speed_choices)
 		print("Steering=", steering_choices)
 
+	speed_smoother = Smoother(3)
+	steering_smoother = Smoother(3)
+
 	for t in range(run_max):
 		# execute the action
 		obs, reward, done, info = env.step(action)
@@ -126,6 +139,9 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 
 		out.write(rgb)
 		filtered = process_image(obs)
+
+		# restrict to a central 80x80 square
+		filtered = filtered[20:120,30:130]
 		(left, right, _top, _bottom) = get_average(filtered, edge_size=edge_size)
 
 	  # Record the readings, while maintaing the window size
@@ -143,9 +159,12 @@ def run_simulation(output_file, debug, base_speed, window_size, edge_size, run_m
 
 			r_av = np.average(right_s)
 			l_av = np.average(left_s)
+
 			diff = l_av-r_av
 
-			(steering, speed) = get_controls(diff, base_speed, power, mod)
+			(steering, speed) = get_controls(diff, base_speed)
+#			steering = steering_smoother.smooth(steering)
+#			speed = speed_smoother.smooth(speed)
 
 			if (debug):
 				print(f"{t}: l={l_av:0.3}, r={r_av:0.3}, diff={diff:0.3}, steering={steering:0.3}, speed={speed:0.3}")
@@ -171,15 +190,13 @@ def main():
 	parser.add_argument("--port", type=int, default=9091)
 	parser.add_argument("--pause", type=int, default=0)
 	parser.add_argument("--debug", type=bool, default=False)
-	parser.add_argument("--power", type=float, default=1)
-	parser.add_argument("--mod", type=float, default=0)
 	parser.add_argument("--track_name", type=str, default="donkey-generated-roads-v0")
 
 	args = parser.parse_args()
 	sleep(args.pause)
 	(run_length, result) = run_simulation(args.output_file, args.debug, args.base_speed, args.window_size, args.edge_size,
-		args.run_max, args.track_name, args.port, args.power, args.mod)
-	results = [args.output_file, args.track_name, run_length, args.base_speed, args.window_size, args.edge_size, args.power, args.mod, result]
+		args.run_max, args.track_name, args.port)
+	results = [args.output_file, args.track_name, run_length, args.base_speed, args.window_size, args.edge_size, result]
 	results = [str(x) for x in results] 
 	print("RESULT,",",".join(results))
 
